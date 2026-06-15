@@ -9,6 +9,7 @@ import { supabase } from "./src/lib/supabase";
 import AuthScreen from "./src/screens/AuthScreen";
 import LocationScreen from "./src/screens/LocationScreen";
 import IncomeScreen from "./src/screens/IncomeScreen";
+import HomeScreen from "./src/screens/HomeScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -147,7 +148,10 @@ function MainApp({ session }) {
       {step === 2 && (
         <IncomeScreen data={data} setData={updateData} onNext={() => goTo(3)} onBack={() => goTo(1)} />
       )}
-      {step > 2 && (
+      {step === 3 && (
+        <HomeScreen data={data} setData={updateData} onNext={() => goTo(4)} onBack={() => goTo(2)} />
+      )}
+      {step > 3 && (
         <View style={styles.center}>
           <Text style={styles.soon}>Step {step} — {currentStep.title} 🚧</Text>
           <TouchableOpacity onPress={() => goTo(step - 1)} style={styles.backBtn}>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Image,
 } from "react-native";
 import { supabase } from "../lib/supabase";
 import { C } from "../lib/colors";
@@ -10,6 +10,7 @@ export default function AuthScreen() {
   const [mode, setMode]       = useState("login"); // "login" | "signup"
   const [email, setEmail]     = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone]     = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
   const [info, setInfo]       = useState("");
@@ -22,7 +23,10 @@ export default function AuthScreen() {
       const { error: e } = await supabase.auth.signInWithPassword({ email, password });
       if (e) setError(e.message);
     } else {
-      const { error: e } = await supabase.auth.signUp({ email, password });
+      const { data, error: e } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { phone: phone || null } },
+      });
       if (e) setError(e.message);
       else setInfo("Check your email to confirm your account, then log in.");
     }
@@ -35,7 +39,7 @@ export default function AuthScreen() {
 
         {/* Logo / header */}
         <View style={s.header}>
-          <Text style={s.logo}>🍞</Text>
+          <Image source={require("../../assets/logo.png")} style={s.logo} />
           <Text style={s.title}>Bread Crumbs</Text>
           <Text style={s.subtitle}>Your homebuying roadmap</Text>
         </View>
@@ -74,6 +78,21 @@ export default function AuthScreen() {
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
           />
 
+          {mode === "signup" && (
+            <>
+              <Text style={s.fieldLabel}>Phone number <Text style={s.optional}>(optional)</Text></Text>
+              <TextInput
+                style={s.input}
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="e.g. 832-555-1234"
+                placeholderTextColor={C.gray300}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+              />
+            </>
+          )}
+
           {error ? <Text style={s.error}>{error}</Text> : null}
           {info  ? <Text style={s.info}>{info}</Text>  : null}
 
@@ -99,9 +118,9 @@ export default function AuthScreen() {
 
 const s = StyleSheet.create({
   flex: { flex: 1, backgroundColor: C.green },
-  container: { flexGrow: 1, justifyContent: "center", padding: 24 },
-  header: { alignItems: "center", marginBottom: 32 },
-  logo: { fontSize: 56, marginBottom: 8 },
+  container: { flexGrow: 1, justifyContent: "center", padding: 24, paddingTop: 0, paddingBottom: 0 },
+  header: { alignItems: "center", marginBottom: 4 },
+  logo: { width: 340, height: 260, resizeMode: "contain", marginTop: -20, marginBottom: -10 },
   title: { fontSize: 28, fontWeight: "900", color: C.white, letterSpacing: -0.5 },
   subtitle: { fontSize: 14, color: C.greenLight, marginTop: 4, fontWeight: "500" },
   card: { backgroundColor: C.white, borderRadius: 20, padding: 24, shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
@@ -111,6 +130,7 @@ const s = StyleSheet.create({
   tabText: { fontSize: 14, fontWeight: "600", color: C.gray500 },
   tabTextActive: { color: C.charcoal, fontWeight: "800" },
   fieldLabel: { fontSize: 12, fontWeight: "700", color: C.charcoal, marginBottom: 6 },
+  optional: { fontSize: 11, fontWeight: "500", color: C.gray500 },
   input: { borderWidth: 1.5, borderColor: C.gray300, borderRadius: 10, padding: 13, fontSize: 15, color: C.charcoal, marginBottom: 14 },
   error: { fontSize: 12, color: C.red, marginBottom: 10, fontWeight: "600" },
   info: { fontSize: 12, color: C.green, marginBottom: 10, fontWeight: "600" },
