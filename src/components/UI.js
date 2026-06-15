@@ -49,9 +49,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   secTitle: {
-    fontSize: 15,
+    fontSize: 11,
     fontWeight: "800",
-    color: C.charcoal,
+    color: C.green,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
     marginBottom: 12,
   },
   alert: {

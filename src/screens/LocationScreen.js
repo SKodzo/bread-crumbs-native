@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import {
-  View, Text, TouchableOpacity, ScrollView,
+  View, Text, TextInput, TouchableOpacity, ScrollView,
   ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform,
 } from "react-native";
 import Slider from "@react-native-community/slider";
@@ -214,9 +214,8 @@ export default function LocationScreen({ data, setData, onNext, programs = [] })
               </View>
 
               {crime && (
-                <View style={[styles.infoCard, { borderLeftColor: crime.color }]}>
+                <View style={[styles.infoCard, { borderLeftColor: crime.color, backgroundColor: crime.bg }]}>
                   <Text style={styles.infoCardTitle}>Safety · {locInfo.city}</Text>
-                  <Text style={[styles.infoCardBadge, { color: crime.color }]}>{crime.label}</Text>
                   <Text style={styles.infoCardDetail}>{crime.detail}</Text>
                 </View>
               )}
