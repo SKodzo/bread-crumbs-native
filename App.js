@@ -1,25 +1,27 @@
-import { useState } from "react";
-import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useState, useEffect } from "react";
+import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { C } from "./src/lib/colors";
 import { usePrograms } from "./src/lib/usePrograms";
+import { supabase } from "./src/lib/supabase";
+import AuthScreen from "./src/screens/AuthScreen";
 import LocationScreen from "./src/screens/LocationScreen";
 import IncomeScreen from "./src/screens/IncomeScreen";
 
 const Stack = createNativeStackNavigator();
 
 export const STEPS = [
-  { id:1, label:"Location",    icon:"📍", title:"Where are you buying?"       },
-  { id:2, label:"Income",      icon:"💰", title:"Your income & savings"        },
-  { id:3, label:"Home",        icon:"🏠", title:"Your target home"             },
-  { id:4, label:"Loan",        icon:"🏦", title:"Choose your loan"             },
-  { id:5, label:"Programs",    icon:"🎯", title:"Available programs"           },
-  { id:6, label:"Budget",      icon:"📊", title:"Monthly spending"             },
-  { id:7, label:"Ratios",      icon:"📐", title:"Underwriting ratios"          },
-  { id:8, label:"Results",     icon:"✨", title:"Your full picture"            },
-  { id:9, label:"Action Plan", icon:"✅", title:"Your personalized action plan"},
+  { id:1, label:"Location",    icon:"📍", title:"Where are you buying?"        },
+  { id:2, label:"Income",      icon:"💰", title:"Your income & savings"         },
+  { id:3, label:"Home",        icon:"🏠", title:"Your target home"              },
+  { id:4, label:"Loan",        icon:"🏦", title:"Choose your loan"              },
+  { id:5, label:"Programs",    icon:"🎯", title:"Available programs"            },
+  { id:6, label:"Budget",      icon:"📊", title:"Monthly spending"              },
+  { id:7, label:"Ratios",      icon:"📐", title:"Underwriting ratios"           },
+  { id:8, label:"Results",     icon:"✨", title:"Your full picture"             },
+  { id:9, label:"Action Plan", icon:"✅", title:"Your personalized action plan" },
 ];
 
 const INITIAL_DATA = {
@@ -43,7 +45,7 @@ function StepBar({ step, maxStep, onGoTo }) {
             onPress={() => s.id <= maxStep && onGoTo(s.id)}
             style={[
               styles.stepDot,
-              s.id < step  && styles.stepDotDone,
+              s.id < step   && styles.stepDotDone,
               s.id === step && styles.stepDotCurrent,
               s.id > step && s.id <= maxStep && styles.stepDotUnlocked,
               s.id > maxStep && styles.stepDotLocked,
@@ -62,18 +64,58 @@ function StepBar({ step, maxStep, onGoTo }) {
   );
 }
 
-function MainApp() {
-  const [step, setStep] = useState(1);
+async function saveProgress(userId, data, step) {
+  await supabase.from("user_progress").upsert(
+    { user_id: userId, data, step, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" }
+  );
+}
+
+async function loadProgress(userId) {
+  const { data } = await supabase
+    .from("user_progress")
+    .select("data, step")
+    .eq("user_id", userId)
+    .single();
+  return data;
+}
+
+function MainApp({ session }) {
+  const [step, setStep]       = useState(1);
   const [maxStep, setMaxStep] = useState(1);
-  const [data, setData] = useState(INITIAL_DATA);
+  const [data, setData]       = useState(INITIAL_DATA);
+  const [loading, setLoading] = useState(true);
   const { programs } = usePrograms(data.locationInfo, data);
 
-  const goTo = (s) => {
+  useEffect(() => {
+    (async () => {
+      const saved = await loadProgress(session.user.id);
+      if (saved?.data) { setData(saved.data); setStep(saved.step || 1); setMaxStep(saved.step || 1); }
+      setLoading(false);
+    })();
+  }, []);
+
+  const goTo = async (s) => {
     setStep(s);
     if (s > maxStep) setMaxStep(s);
+    await saveProgress(session.user.id, data, s);
+  };
+
+  const updateData = async (newData) => {
+    setData(newData);
+    await saveProgress(session.user.id, newData, step);
   };
 
   const currentStep = STEPS[step - 1];
+
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={C.green} />
+        <Text style={styles.loadingText}>Loading your progress...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -83,7 +125,12 @@ function MainApp() {
           <Image source={require("./assets/logo.png")} style={styles.headerLogo} />
           <Text style={styles.headerTitle}>Bread Crumbs</Text>
         </View>
-        <Text style={styles.headerStep}>Step {step} of {STEPS.length}</Text>
+        <View style={styles.headerRight}>
+          <Text style={styles.headerStep}>Step {step} of {STEPS.length}</Text>
+          <TouchableOpacity onPress={() => supabase.auth.signOut()} style={styles.signOutBtn}>
+            <Text style={styles.signOutText}>Sign out</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Step progress bar */}
@@ -94,12 +141,11 @@ function MainApp() {
         <Text style={styles.pageTitle}>{currentStep.icon} {currentStep.title}</Text>
       </View>
 
-      {/* Screens */}
       {step === 1 && (
-        <LocationScreen data={data} setData={setData} onNext={() => goTo(2)} programs={programs} />
+        <LocationScreen data={data} setData={updateData} onNext={() => goTo(2)} programs={programs} />
       )}
       {step === 2 && (
-        <IncomeScreen data={data} setData={setData} onNext={() => goTo(3)} onBack={() => goTo(1)} />
+        <IncomeScreen data={data} setData={updateData} onNext={() => goTo(3)} onBack={() => goTo(1)} />
       )}
       {step > 2 && (
         <View style={styles.center}>
@@ -113,12 +159,32 @@ function MainApp() {
   );
 }
 
+function RootNavigator() {
+  const [session, setSession] = useState(undefined); // undefined = loading
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => setSession(s ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s ?? null));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (session === undefined) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={C.green} />
+      </View>
+    );
+  }
+
+  return session ? <MainApp session={session} /> : <AuthScreen />;
+}
+
 export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={MainApp} />
+        <Stack.Screen name="Root" component={RootNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -126,6 +192,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.white },
+  loading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: C.white },
+  loadingText: { marginTop: 12, color: C.gray500, fontWeight: "600" },
   header: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 16, paddingVertical: 10,
@@ -134,17 +202,17 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   headerLogo: { width: 54, height: 54, resizeMode: "contain" },
   headerTitle: { fontSize: 18, fontWeight: "900", color: C.green, letterSpacing: -0.3 },
+  headerRight: { alignItems: "flex-end", gap: 2 },
   headerStep: { fontSize: 11, fontWeight: "600", color: C.gray500 },
+  signOutBtn: { paddingVertical: 2 },
+  signOutText: { fontSize: 11, color: C.gray500, textDecorationLine: "underline" },
   stepBar: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 14, paddingVertical: 10,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.gray100,
   },
   stepCell: { flex: 1, flexDirection: "row", alignItems: "center" },
-  stepDot: {
-    width: 28, height: 28, borderRadius: 14,
-    alignItems: "center", justifyContent: "center", flexShrink: 0,
-  },
+  stepDot: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   stepDotDone:     { backgroundColor: C.green },
   stepDotCurrent:  { backgroundColor: C.green, shadowColor: C.green, shadowOpacity: 0.4, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } },
   stepDotUnlocked: { backgroundColor: C.white, borderWidth: 2, borderColor: C.green },
