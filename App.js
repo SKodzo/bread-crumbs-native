@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { C } from "./src/lib/colors";
 import { usePrograms } from "./src/lib/usePrograms";
 import LocationScreen from "./src/screens/LocationScreen";
+import IncomeScreen from "./src/screens/IncomeScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,7 +25,12 @@ export const STEPS = [
 const INITIAL_DATA = {
   zip: "", locationInfo: null, isFirstTime: undefined,
   householdSize: 1, isRenting: undefined, monthlyRent: 1500,
-  profession: "none", isVet: false, income: 0,
+  income: 86000, alimony: 0, k401: 3000, roth: 1000, hsa: 0,
+  profession: "none", isVet: false,
+  score: 740, dpPct: 5, debts: 300,
+  price: 340000, loanType: "fha", loanTerm: 360,
+  programs: [], student: 0,
+  groc: 400, dining: 200, ent: 150, pcare: 150, car: 500, efund: 300,
 };
 
 function StepBar({ step, maxStep, onGoTo }) {
@@ -90,13 +96,12 @@ function MainApp() {
 
       {/* Screens */}
       {step === 1 && (
-        <LocationScreen
-          data={data} setData={setData}
-          onNext={() => goTo(2)}
-          programs={programs}
-        />
+        <LocationScreen data={data} setData={setData} onNext={() => goTo(2)} programs={programs} />
       )}
-      {step > 1 && (
+      {step === 2 && (
+        <IncomeScreen data={data} setData={setData} onNext={() => goTo(3)} onBack={() => goTo(1)} />
+      )}
+      {step > 2 && (
         <View style={styles.center}>
           <Text style={styles.soon}>Step {step} — {currentStep.title} 🚧</Text>
           <TouchableOpacity onPress={() => goTo(step - 1)} style={styles.backBtn}>
