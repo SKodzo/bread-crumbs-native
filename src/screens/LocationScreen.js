@@ -1,12 +1,95 @@
 import { useState, useMemo } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform,
+  ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { C } from "../lib/colors";
 import { ZIP_DB, getCrime, getClimate } from "../lib/data";
 import { Card, SecTitle, Alert, BtnPri } from "../components/UI";
+
+const riskColor = r => r === "Extreme" || r === "Very High" ? C.red : r === "High" ? C.amber : r === "Moderate" || r === "Low-Moderate" ? C.greenMid : C.green;
+const riskBg    = r => r === "Extreme" || r === "Very High" ? C.redLight : r === "High" ? C.amberLight : r === "Moderate" || r === "Low-Moderate" ? "#FFF7ED" : C.greenLight;
+
+function CrimeCard({ crime, city, zip }) {
+  if (!crime) return null;
+  const sc = crime.safety;
+  const safeColor = sc >= 8 ? C.green : sc >= 5 ? C.amber : C.red;
+  const safeBg    = sc >= 8 ? C.greenLight : sc >= 5 ? C.amberLight : C.redLight;
+  const primaryUrl   = crime.source ? crime.source.url : "https://www.fbi.gov/services/cjis/ucr";
+  const primaryLabel = crime.source ? crime.source.name : "FBI Uniform Crime Reports";
+  return (
+    <View style={[cs.crimeCard, { backgroundColor: safeBg }]}>
+      <Text style={[cs.crimeTitle, { color: safeColor }]}>🚨 {city} Safety</Text>
+      <View style={cs.safetyBarBg}>
+        <View style={[cs.safetyBarFill, { width: `${sc * 10}%`, backgroundColor: safeColor }]} />
+      </View>
+      <View style={cs.crimeLinks}>
+        <TouchableOpacity
+          onPress={() => Linking.openURL(primaryUrl)}
+          style={[cs.crimeLink, { borderColor: safeColor }]}
+        >
+          <View style={cs.govBadge}><Text style={cs.govBadgeText}>.GOV</Text></View>
+          <Text style={[cs.crimeLinkTitle, { color: safeColor }]}>Official {city} crime stats →</Text>
+          <Text style={cs.crimeLinkSub}>{primaryLabel}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => Linking.openURL("https://www.crimemapping.com/")}
+          style={[cs.crimeLink, { borderColor: C.gray300 }]}
+        >
+          <Text style={[cs.crimeLinkTitle, { color: C.charcoal }]}>Search incidents near ZIP {zip} →</Text>
+          <Text style={cs.crimeLinkSub}>CrimeMapping.com · official PD feeds</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const ZIP_TOOLS = (zip) => [
+  { name: "FEMA Flood Map Service Center (.gov)", url: `https://msc.fema.gov/portal/search?AddressQuery=${zip}`, desc: `Enter ZIP ${zip} for the official FEMA flood zone designation for every parcel`, icon: "🌊", gov: true },
+  { name: "FEMA National Risk Index (.gov)", url: "https://hazards.fema.gov/nri/", desc: "Multi-hazard risk scores — flood, hurricane, tornado, wildfire, heat wave & more by census tract", icon: "🗺️", gov: true },
+  { name: "Wildfire Risk to Communities (.gov / USDA)", url: "https://wildfirerisk.org/", desc: `USDA Forest Service wildfire likelihood & exposure — search by ZIP ${zip}`, icon: "🔥", gov: true },
+  { name: "First Street Foundation", url: "https://firststreet.org/", desc: `Flood, fire, wind & heat risk scores for specific properties — search ZIP ${zip}`, icon: "🌡️", gov: false },
+  { name: "ClimateCheck", url: "https://climatecheck.com/", desc: `30-year climate risk projections (heat, drought, storm, fire, flood) — search ZIP ${zip}`, icon: "📊", gov: false },
+];
+
+function ClimateCard({ climate, state, zip }) {
+  const tools = ZIP_TOOLS(zip);
+  const activeRisks = climate ? Object.entries(climate).filter(([, v]) => v.risk !== "None") : [];
+  return (
+    <View>
+      <View style={cs.climateToolsBox}>
+        <Text style={cs.climateToolsTitle}>🌍 Get climate risk scores for ZIP {zip} specifically</Text>
+        <Text style={cs.climateToolsDesc}>Climate risk varies block by block — flood zones, wildfire buffers, and heat islands don't follow city or state lines. Use these tools to look up your exact ZIP or address:</Text>
+        {tools.map(t => (
+          <TouchableOpacity key={t.name} onPress={() => Linking.openURL(t.url)} style={[cs.toolRow, t.gov && cs.toolRowGov]}>
+            <Text style={cs.toolIcon}>{t.icon}</Text>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                {t.gov && <View style={cs.govBadge}><Text style={cs.govBadgeText}>.GOV</Text></View>}
+                <Text style={cs.toolName}>{t.name} →</Text>
+              </View>
+              <Text style={cs.toolDesc}>{t.desc}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+        <Text style={cs.climateWarning}>⚠️ Always check flood zone & get insurance quotes before making an offer — not after.</Text>
+      </View>
+
+      {activeRisks.length > 0 && (
+        <View style={{ marginBottom: 10 }}>
+          <Text style={cs.regionalLabel}>Regional context — {state} (state-level overview, your ZIP may differ):</Text>
+          {activeRisks.map(([key, val]) => (
+            <View key={key} style={[cs.riskRow, { backgroundColor: riskBg(val.risk) }]}>
+              <Text style={[cs.riskLabel, { color: riskColor(val.risk) }]}>{val.icon} {key.charAt(0).toUpperCase() + key.slice(1)} Risk</Text>
+              <Text style={[cs.riskValue, { color: riskColor(val.risk) }]}>{val.risk}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function LocationScreen({ data, setData, onNext, programs = [] }) {
   const [zip, setZip] = useState(data.zip || "");
@@ -213,21 +296,8 @@ export default function LocationScreen({ data, setData, onNext, programs = [] })
                 ))}
               </View>
 
-              {crime && (
-                <View style={[styles.infoCard, { borderLeftColor: crime.color, backgroundColor: crime.bg }]}>
-                  <Text style={styles.infoCardTitle}>Safety · {locInfo.city}</Text>
-                  <Text style={styles.infoCardDetail}>{crime.detail}</Text>
-                </View>
-              )}
-
-              {climate && (
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoCardTitle}>Climate risks · {locInfo.state}</Text>
-                  {Object.entries(climate).map(([k, v]) => (
-                    <Text key={k} style={styles.climateRow}>{v.icon} <Text style={{ fontWeight: "700" }}>{k.charAt(0).toUpperCase() + k.slice(1)}:</Text> {v.risk}</Text>
-                  ))}
-                </View>
-              )}
+              {crime && <CrimeCard crime={crime} city={locInfo.city} zip={locInfo.zip} />}
+              {<ClimateCard climate={climate} state={locInfo.state} zip={locInfo.zip} />}
             </View>
           )}
         </Card>
@@ -301,4 +371,32 @@ const styles = StyleSheet.create({
   infoCardBadge: { fontSize: 14, fontWeight: "800", marginBottom: 4 },
   infoCardDetail: { fontSize: 12, color: C.gray700, lineHeight: 17 },
   climateRow: { fontSize: 12, color: C.charcoal, lineHeight: 20 },
+});
+
+const cs = StyleSheet.create({
+  // Crime card
+  crimeCard: { borderRadius: 12, padding: 12, marginBottom: 10 },
+  crimeTitle: { fontSize: 13, fontWeight: "800", marginBottom: 8 },
+  safetyBarBg: { height: 5, borderRadius: 99, backgroundColor: "rgba(0,0,0,0.1)", overflow: "hidden", marginBottom: 10 },
+  safetyBarFill: { height: "100%", borderRadius: 99 },
+  crimeLinks: { flexDirection: "row", gap: 6 },
+  crimeLink: { flex: 1, alignItems: "center", backgroundColor: "rgba(255,255,255,0.75)", borderWidth: 1.5, borderRadius: 8, padding: 8, gap: 3 },
+  crimeLinkTitle: { fontSize: 10, fontWeight: "800", textAlign: "center", lineHeight: 14 },
+  crimeLinkSub: { fontSize: 8, color: C.gray500, textAlign: "center", lineHeight: 12 },
+  govBadge: { backgroundColor: C.blue, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1 },
+  govBadgeText: { fontSize: 8, fontWeight: "900", color: C.white, letterSpacing: 0.5 },
+  // Climate card
+  climateToolsBox: { backgroundColor: C.blueLight, borderRadius: 12, padding: 12, marginBottom: 8 },
+  climateToolsTitle: { fontSize: 12, fontWeight: "800", color: C.blue, marginBottom: 4 },
+  climateToolsDesc: { fontSize: 10, color: C.gray700, lineHeight: 15, marginBottom: 8 },
+  toolRow: { flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: "rgba(255,255,255,0.75)", borderRadius: 8, padding: 8, marginBottom: 5, borderWidth: 1, borderColor: "transparent" },
+  toolRowGov: { backgroundColor: "rgba(219,234,254,0.7)", borderColor: "#93C5FD" },
+  toolIcon: { fontSize: 16, marginTop: 1 },
+  toolName: { fontSize: 11, fontWeight: "800", color: C.blue },
+  toolDesc: { fontSize: 9, color: C.gray500, lineHeight: 13, marginTop: 2 },
+  climateWarning: { fontSize: 9, color: C.gray500, marginTop: 6 },
+  regionalLabel: { fontSize: 10, fontWeight: "800", color: C.gray500, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 },
+  riskRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 5 },
+  riskLabel: { fontSize: 13, fontWeight: "800" },
+  riskValue: { fontSize: 12, fontWeight: "900" },
 });

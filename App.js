@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: C.gray100, backgroundColor: C.white,
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  headerLogo: { width: 32, height: 32, resizeMode: "contain" },
+  headerLogo: { width: 54, height: 54, resizeMode: "contain" },
   headerTitle: { fontSize: 18, fontWeight: "900", color: C.green, letterSpacing: -0.3 },
   headerStep: { fontSize: 11, fontWeight: "600", color: C.gray500 },
   stepBar: {
