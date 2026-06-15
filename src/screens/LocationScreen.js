@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView,
+  View, Text, TouchableOpacity, ScrollView,
   ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform,
 } from "react-native";
+import Slider from "@react-native-community/slider";
 import { C } from "../lib/colors";
 import { ZIP_DB, getCrime, getClimate } from "../lib/data";
 import { Card, SecTitle, Alert, BtnPri } from "../components/UI";
@@ -133,18 +134,22 @@ export default function LocationScreen({ data, setData, onNext, programs = [] })
           </View>
           {data.isRenting && (
             <View style={styles.rentRow}>
-              <Text style={styles.rentLabel}>Monthly rent</Text>
-              <View style={styles.rentInputRow}>
-                <Text style={styles.rentDollar}>$</Text>
-                <TextInput
-                  style={styles.rentInput}
-                  keyboardType="number-pad"
-                  value={String(data.monthlyRent || 1500)}
-                  onChangeText={t => setData({ ...data, monthlyRent: parseInt(t.replace(/\D/g, "")) || 0 })}
-                  maxLength={5}
-                />
-                <Text style={styles.rentPer}>/mo</Text>
+              <View style={styles.rentLabelRow}>
+                <Text style={styles.rentLabel}>Current monthly rent</Text>
+                <Text style={styles.rentValue}>${(data.monthlyRent || 1500).toLocaleString()}/mo</Text>
               </View>
+              <Slider
+                style={{ width: "100%", height: 40 }}
+                minimumValue={300}
+                maximumValue={5000}
+                step={50}
+                value={data.monthlyRent || 1500}
+                onValueChange={v => setData({ ...data, monthlyRent: v })}
+                minimumTrackTintColor={C.green}
+                maximumTrackTintColor={C.gray300}
+                thumbTintColor={C.green}
+              />
+              <Text style={styles.rentNote}>Used in the Wait vs. Buy analysis on your results page</Text>
             </View>
           )}
         </Card>
@@ -261,11 +266,10 @@ const styles = StyleSheet.create({
   sizeBtnText: { fontSize: 14, fontWeight: "800", color: C.charcoal },
   sizeBtnTextSelected: { fontSize: 14, fontWeight: "800", color: C.white },
   rentRow: { marginTop: 12 },
-  rentLabel: { fontSize: 12, fontWeight: "700", color: C.charcoal, marginBottom: 6 },
-  rentInputRow: { flexDirection: "row", alignItems: "center", borderWidth: 2, borderColor: C.gray300, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
-  rentDollar: { fontSize: 18, fontWeight: "700", color: C.charcoal, marginRight: 4 },
-  rentInput: { flex: 1, fontSize: 18, fontWeight: "700", color: C.charcoal },
-  rentPer: { fontSize: 13, color: C.gray500 },
+  rentLabelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
+  rentLabel: { fontSize: 12, fontWeight: "700", color: C.charcoal },
+  rentValue: { fontSize: 15, fontWeight: "800", color: C.green },
+  rentNote: { fontSize: 11, color: C.gray500, marginTop: 2 },
   zipInput: {
     fontSize: 22, fontWeight: "700", textAlign: "center", letterSpacing: 4,
     padding: 14, borderWidth: 2, borderColor: C.gray300, borderRadius: 12,
