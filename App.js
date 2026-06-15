@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView, View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -74,7 +74,7 @@ function MainApp() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerLogo}>🍞</Text>
+          <Image source={require("./assets/logo.png")} style={styles.headerLogo} />
           <Text style={styles.headerTitle}>Bread Crumbs</Text>
         </View>
         <Text style={styles.headerStep}>Step {step} of {STEPS.length}</Text>
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: C.gray100, backgroundColor: C.white,
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
-  headerLogo: { fontSize: 22 },
+  headerLogo: { width: 32, height: 32, resizeMode: "contain" },
   headerTitle: { fontSize: 18, fontWeight: "900", color: C.green, letterSpacing: -0.3 },
   headerStep: { fontSize: 11, fontWeight: "600", color: C.gray500 },
   stepBar: {
