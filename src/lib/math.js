@@ -16,8 +16,8 @@ export const calcTax = (gross, pretax) => {
   return Math.round((f + Math.min(gross, 168600) * .062 + gross * .0145) / 12);
 };
 
-export const convRate = (sc, dp) => {
-  let b = 6.51;
+export const convRate = (sc, dp, base = 6.51) => {
+  let b = base;
   if (sc >= 780) b -= .20;
   else if (sc >= 760) b -= .12;
   else if (sc >= 740) b -= .05;
@@ -30,6 +30,9 @@ export const convRate = (sc, dp) => {
   else if (dp >= 20) b -= .10;
   return Math.round(b * 100) / 100;
 };
+
+export const calcSaleProceeds = (homeValue, balance) =>
+  Math.round(Math.max(0, homeValue * 0.92 - balance));
 
 export const fmt = n => "$" + Math.round(Math.max(0, n)).toLocaleString();
 export const fmtK = n => "$" + Math.round(Math.abs(n) / 1000) + "K";

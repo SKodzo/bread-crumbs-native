@@ -1,27 +1,72 @@
 {
   "expo": {
-    "name": "bread-crumbs-native-ios",
-    "slug": "bread-crumbs-native-ios",
-    "version": "1.0.0",
+    "name": "Bread Crumbs",
+    "slug": "bread-crumbs-financial-planning",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "ios": {
-      "supportsTablet": true
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B6B44"
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.villagecollective.breadcrumbs",
+      "buildNumber": "10",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
+      },
+      "privacyManifests": {
+        "NSPrivacyCollectedDataTypes": [
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeEmailAddress",
+            "NSPrivacyCollectedDataTypeLinked": true,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeFinancialInfo",
+            "NSPrivacyCollectedDataTypeLinked": true,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+          }
+        ],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
       }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "bread-crumbs-wr",
+          "project": "bread-crumbs"
+        }
+      ]
+    ],
+    "extra": {
+      "privacyPolicyUrl": "https://bread-crumbs-one.vercel.app/privacy.html",
+      "supabaseUrl": "https://nbgrsbarglkawoxwtzfq.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iZ3JzYmFyZ2xrYXdveHd0emZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NzQ4MTQsImV4cCI6MjA5NzA1MDgxNH0.TyVQnyn2GUrUgXNLn6d2ZIL9RrYJyGA0AkKIrSF-ruA",
+      "fredApiKey": "589dc81c9ef6fd7578889b44b31e8499",
+      "eas": {
+        "projectId": "520bcfaa-779e-492e-875f-8930d2ff36d1"
+      }
+    },
+    "scheme": "breadcrumbs",
+    "owner": "bread-crumbs-app"
   }
 }

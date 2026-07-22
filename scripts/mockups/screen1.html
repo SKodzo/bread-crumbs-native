@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{width:1290px;height:2796px;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+.canvas{width:1290px;height:2796px;background:#1B6B44;position:relative;display:flex;flex-direction:column;align-items:center;}
+
+/* Top headline zone */
+.top{width:100%;padding:90px 80px 50px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.logo-row{display:flex;align-items:center;gap:16px;margin-bottom:40px;}
+.logo-img{width:80px;height:80px;object-fit:contain;}
+.app-name{font-size:44px;font-weight:900;color:#fff;letter-spacing:-1px;}
+.headline{font-size:86px;font-weight:900;color:#fff;line-height:1.0;letter-spacing:-3px;}
+
+/* Phone */
+.phone-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding-top:40px;}
+.phone{width:960px;height:2080px;position:relative;}
+.shell{position:absolute;inset:0;background:#000;border-radius:78px;}
+.screen{position:absolute;top:16px;left:16px;right:16px;bottom:16px;border-radius:63px;overflow:hidden;}
+.screen img{width:100%;height:100%;object-fit:cover;display:block;}
+.di{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:148px;height:36px;background:#000;border-radius:20px;z-index:20;}
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="top">
+    <div class="logo-row">
+      <img class="logo-img" src="../../assets/logo.png" alt="logo"/>
+      <span class="app-name">Bread Crumbs</span>
+    </div>
+    <div class="headline">Your roadmap<br/>home starts<br/>here.</div>
+  </div>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="shell"></div>
+      <div class="screen">
+        <img src="../../assets/1. Login scree.png" alt="Login"/>
+      </div>
+      <div class="di"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

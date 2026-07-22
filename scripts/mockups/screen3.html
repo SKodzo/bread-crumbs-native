@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{width:1290px;height:2796px;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+.canvas{width:1290px;height:2796px;background:#F2F2F7;position:relative;display:flex;flex-direction:column;align-items:center;}
+.top{width:100%;padding:100px 80px 60px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.headline{font-size:90px;font-weight:900;color:#111;line-height:1.0;letter-spacing:-3px;}
+.phone-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding-top:50px;}
+.phone{width:960px;height:2080px;position:relative;}
+.shell{position:absolute;inset:0;background:#111;border-radius:78px;box-shadow:0 30px 80px rgba(0,0,0,0.22);}
+.screen{position:absolute;top:16px;left:16px;right:16px;bottom:16px;border-radius:63px;overflow:hidden;}
+.screen img{width:100%;height:100%;object-fit:cover;display:block;}
+.di{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:148px;height:36px;background:#111;border-radius:20px;z-index:20;}
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="top">
+    <div class="headline">Find the right<br/>loan for you.</div>
+  </div>
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="shell"></div>
+      <div class="screen">
+        <img src="../../assets/Chose your loan.png" alt="Choose your loan"/>
+      </div>
+      <div class="di"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

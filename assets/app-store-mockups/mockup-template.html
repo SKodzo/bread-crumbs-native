@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bread Crumbs — App Store Screenshot Mockups</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; background: #0f0f0f; color: #fff; padding: 24px; }
+
+  h1 { font-size: 16px; font-weight: 700; color: #555; margin-bottom: 20px; }
+
+  .controls { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+  .tab { padding: 8px 18px; border-radius: 20px; border: 1.5px solid #333; background: transparent; color: #999; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .15s; }
+  .tab.active { background: #1A5C3A; border-color: #1A5C3A; color: #fff; }
+  .tab:hover:not(.active) { border-color: #555; color: #ccc; }
+  .nav-btn { padding: 8px 16px; border-radius: 20px; border: 1.5px solid #333; background: transparent; color: #999; cursor: pointer; font-size: 13px; font-weight: 700; }
+  .nav-btn:hover { border-color: #555; color: #ccc; }
+  .slide-counter { color: #555; font-size: 13px; font-weight: 600; margin-left: auto; }
+
+  .canvas { display: flex; justify-content: center; align-items: flex-start; }
+
+  .mockup-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .mockup { width: 320px; border-radius: 50px; padding: 3px; position: relative; box-shadow: 0 0 0 1px #222, 0 24px 64px rgba(0,0,0,.7); }
+  .mockup-inner { border-radius: 48px; overflow: hidden; position: relative; }
+
+  .bg-green { background: linear-gradient(160deg, #0D3D24 0%, #1A5C3A 50%, #0D3D24 100%); }
+  .bg-blue  { background: linear-gradient(160deg, #0D2644 0%, #1A4070 50%, #0D2644 100%); }
+  .bg-amber { background: linear-gradient(160deg, #3D2200 0%, #7A4400 50%, #3D2200 100%); }
+  .bg-dark  { background: linear-gradient(160deg, #0A0A0A 0%, #1A1A1A 50%, #0A0A0A 100%); }
+
+  .slide { display: none; flex-direction: column; align-items: center; }
+  .slide.active { display: flex; }
+
+  /* Phone shell */
+  .phone { width: 314px; border-radius: 47px; overflow: hidden; }
+  .phone-bg { width: 100%; aspect-ratio: 9/19.5; display: flex; flex-direction: column; }
+
+  /* Screenshot drop zone — replace this with your actual screenshot */
+  .screenshot-zone {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.0);
+    z-index: 20;
+    pointer-events: none;
+  }
+  .screenshot-zone.empty {
+    background: rgba(0,0,0,0.15);
+    pointer-events: all;
+    cursor: pointer;
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 44px;
+  }
+  .drop-hint { font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; padding: 16px; }
+
+  /* Status bar */
+  .status-bar { height: 54px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 28px 8px; flex-shrink: 0; position: relative; z-index: 10; }
+  .status-time { font-size: 15px; font-weight: 700; }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  .island { width: 120px; height: 34px; background: #000; border-radius: 20px; position: absolute; left: 50%; transform: translateX(-50%); top: 0; }
+
+  /* Screen content */
+  .screen-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+  /* Callout */
+  .callout { width: 314px; text-align: center; padding: 0 12px; }
+  .callout-tag { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .callout-headline { font-size: 22px; font-weight: 900; line-height: 1.2; margin-bottom: 8px; letter-spacing: -.4px; }
+  .callout-sub { font-size: 13px; font-weight: 500; color: #666; line-height: 1.5; }
+
+  /* Reusable UI pieces */
+  .screen-header { background: #fff; padding: 10px 14px 6px; border-bottom: 1px solid #F0F0F0; }
+  .screen-hdr-row { display: flex; justify-content: space-between; align-items: center; }
+  .screen-hdr-title { font-size: 13px; font-weight: 900; color: #111; }
+  .screen-hdr-step { font-size: 9px; color: #999; font-weight: 600; }
+  .scroll-area { flex: 1; overflow: hidden; background: #F5F5F0; padding: 6px 8px; display: flex; flex-direction: column; gap: 6px; }
+  .mini-card { background: #fff; border-radius: 10px; padding: 8px 10px; }
+  .mini-card-title { font-size: 9px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .tier-row { border-radius: 8px; padding: 6px 8px; margin-bottom: 4px; }
+  .tier-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
+  .tier-amount { font-size: 18px; font-weight: 900; line-height: 1.1; }
+  .budget-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: .5px solid #F0F0F0; }
+  .budget-label { font-size: 8px; color: #666; }
+  .budget-val { font-size: 8px; font-weight: 700; }
+  .flow-card { background: #fff; border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #E8E8E4; }
+  .flow-icon-wrap { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .flow-text-title { font-size: 12px; font-weight: 800; color: #111; }
+  .flow-text-sub { font-size: 9px; color: #888; margin-top: 1px; line-height: 1.3; }
+  .flow-pills { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .pill-tag { font-size: 8px; font-weight: 700; border-radius: 4px; padding: 2px 5px; }
+  .nearby-area { background: #fff; border-radius: 8px; padding: 7px 9px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+  .area-name { font-size: 10px; font-weight: 800; color: #111; }
+  .area-sub { font-size: 8px; color: #888; }
+  .area-budget { font-size: 9px; font-weight: 800; border-radius: 5px; padding: 2px 6px; }
+  .check-item { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; border-bottom: .5px solid #F0F0F0; }
+  .check-box { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
+  .check-text { font-size: 8px; color: #333; line-height: 1.3; flex: 1; }
+  .check-done { color: #bbb; text-decoration: line-through; }
+  .progress-bar-wrap { height: 6px; background: #F0F0F0; border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+  .progress-bar-fill { height: 100%; border-radius: 99px; }
+  .waterfall-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: .5px solid #F0F0F0; }
+  .wf-label { font-size: 8px; color: #666; }
+  .wf-val { font-size: 8px; font-weight: 700; }
+  .prog-item { border-radius: 8px; padding: 7px 9px; margin-bottom: 5px; border: 1px solid #E8F5EE; }
+  .prog-name { font-size: 9px; font-weight: 800; color: #1A5C3A; }
+  .prog-desc { font-size: 8px; color: #555; margin-top: 2px; line-height: 1.3; }
+  .prog-amount { font-size: 13px; font-weight: 900; color: #1A5C3A; margin-top: 3px; }
+  .prog-badge { font-size: 7px; background: #E8F5EE; color: #1A5C3A; border-radius: 4px; padding: 2px 5px; font-weight: 700; display: inline-block; }
+  .cg-rate-box { border-radius: 8px; padding: 8px; margin-bottom: 6px; }
+  .cg-rate-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .cg-rate-val { font-size: 22px; font-weight: 900; }
+
+  /* color helpers */
+  .green { color: #1A5C3A; } .blue { color: #1A70C8; } .amber { color: #7A4400; } .red { color: #DC2626; }
+
+  /* Dots */
+  .dots { display: flex; gap: 6px; justify-content: center; margin-top: 20px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #333; cursor: pointer; transition: all .2s; }
+  .dot.active { background: #1A5C3A; width: 22px; border-radius: 4px; }
+
+  /* Export hint */
+  .export-hint { margin-top: 24px; text-align: center; font-size: 11px; color: #444; line-height: 1.7; }
+  .export-hint strong { color: #666; }
+
+  /* Battery SVG inline */
+  .batt { display:inline-flex; }
+</style>
+</head>
+<body>
+
+<h1>Bread Crumbs — App Store Screenshot Mockups &nbsp;·&nbsp; Drop your screenshots in, export each slide</h1>
+
+<div class="controls">
+  <button class="tab active" onclick="setFlow('all',event)">All (10)</button>
+  <button class="tab" onclick="setFlow('buy',event)">🏡 Buy</button>
+  <button class="tab" onclick="setFlow('rent',event)">🏢 Rent</button>
+  <button class="tab" onclick="setFlow('sell',event)">💰 Sell</button>
+  <button class="nav-btn" onclick="prevSlide()">‹ Prev</button>
+  <button class="nav-btn" onclick="nextSlide()">Next ›</button>
+  <span class="slide-counter" id="counter">1 / 10</span>
+</div>
+
+<div class="canvas" id="canvas">
+
+<!-- ══════════════ SLIDE 1 — Landing ══════════════ -->
+<div class="slide active" id="slide-1" data-flow="all">
+  <div class="mockup-wrap">
+    <div class="mockup bg-green">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff; position:relative;">
+            <div class="status-bar" style="background:#fff;color:#111;">
+              <span class="status-time">9:41</span><div class="island"></div>
+              <div class="status-icons"><svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="#111"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="#111"/><rect x="9" y="0" width="3" height="12" rx="1" fill="#111"/></svg><svg width="14" height="11" viewBox="0 0 24 16"><path d="M12 4C8.5 4 5.4 5.4 3.2 7.7L1 5.4C3.9 2.5 7.7.8 12 .8s8.1 1.7 11 4.6L20.8 7.7C18.6 5.4 15.5 4 12 4z" fill="#111"/><circle cx="12" cy="14" r="2" fill="#111"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div>
+            </div>
+            <div class="screen-content">
+              <div style="background:#fff;padding:8px 16px 6px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F0F0F0;">
+                <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:22px;">🍞</span><span style="font-size:13px;font-weight:900;color:#1A5C3A;">Bread Crumbs</span></div>
+                <span style="font-size:18px;color:#555;">☰</span>
+              </div>
+              <div style="background:#F5F5F0;flex:1;padding:10px;">
+                <div style="font-size:15px;font-weight:900;color:#111;margin-bottom:2px;">What are you planning?</div>
+                <div style="font-size:9px;color:#888;margin-bottom:10px;">Choose your path to get started</div>
+                <div class="flow-card" style="margin-bottom:7px;">
+                  <div class="flow-icon-wrap" style="background:#E8F5EE;">🏡</div>
+                  <div style="flex:1;"><div class="flow-text-title">I'm buying a home</div><div class="flow-text-sub">Affordability, down payment, programs & closing costs</div><div class="flow-pills"><span class="pill-tag" style="background:#E8F5EE;color:#1A5C3A;">Mortgage</span><span class="pill-tag" style="background:#E8F5EE;color:#1A5C3A;">Programs</span></div></div>
+                  <span style="color:#1A5C3A;font-size:16px;">›</span>
+                </div>
+                <div class="flow-card" style="margin-bottom:7px;">
+                  <div class="flow-icon-wrap" style="background:#E8F0FA;">🏢</div>
+                  <div style="flex:1;"><div class="flow-text-title">I'm renting</div><div class="flow-text-sub">Rent tiers, move-in costs, savings timeline & checklist</div><div class="flow-pills"><span class="pill-tag" style="background:#E8F0FA;color:#1A70C8;">Budget</span><span class="pill-tag" style="background:#E8F0FA;color:#1A70C8;">Nearby areas</span></div></div>
+                  <span style="color:#1A70C8;font-size:16px;">›</span>
+                </div>
+                <div class="flow-card">
+                  <div class="flow-icon-wrap" style="background:#FFF3E0;">💰</div>
+                  <div style="flex:1;"><div class="flow-text-title">I'm selling</div><div class="flow-text-sub">Net proceeds, capital gains, costs & action plan</div><div class="flow-pills"><span class="pill-tag" style="background:#FFF3E0;color:#7A4400;">Proceeds</span><span class="pill-tag" style="background:#FFF3E0;color:#7A4400;">Tax impact</span></div></div>
+                  <span style="color:#7A4400;font-size:16px;">›</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A5C3A;">One app. Three paths.</div>
+      <div class="callout-headline">Buying. Renting. Selling.<br>Your plan starts here.</div>
+      <div class="callout-sub">Pick your path and get a personalized financial roadmap in minutes.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 2 — Buyer Affordability ══════════════ -->
+<div class="slide" id="slide-2" data-flow="buy">
+  <div class="mockup-wrap">
+    <div class="mockup bg-green">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title">🏡 What you can afford</span><span class="screen-hdr-step">Step 4 of 9</span></div></div>
+              <div class="scroll-area">
+                <div class="mini-card">
+                  <div class="mini-card-title">Rent tiers · $72,000/yr income</div>
+                  <div class="tier-row" style="background:#E8F5EE;"><div class="tier-label green">Conservative · 25%</div><div class="tier-amount green">$1,500<span style="font-size:10px;">/mo</span></div></div>
+                  <div class="tier-row" style="background:#E8F0FA;"><div class="tier-label blue">Standard · 30%</div><div class="tier-amount blue">$1,800<span style="font-size:10px;">/mo</span></div></div>
+                  <div class="tier-row" style="background:#FFF8E1;"><div class="tier-label amber">Stretch · 35%</div><div class="tier-amount amber">$2,100<span style="font-size:10px;">/mo</span></div></div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-title">Monthly breakdown · Standard tier</div>
+                  <div class="budget-row"><span class="budget-label">Gross income</span><span class="budget-val">$6,000</span></div>
+                  <div class="budget-row"><span class="budget-label">Federal + FICA + state tax</span><span class="budget-val red">−$1,240</span></div>
+                  <div class="budget-row"><span class="budget-label">Take-home pay</span><span class="budget-val green">$4,760</span></div>
+                  <div class="budget-row"><span class="budget-label">Rent (standard)</span><span class="budget-val blue">−$1,800</span></div>
+                  <div class="budget-row"><span class="budget-label">Utilities</span><span class="budget-val">−$185</span></div>
+                  <div class="budget-row"><span class="budget-label">Personal expenses</span><span class="budget-val">−$1,250</span></div>
+                  <div class="budget-row" style="border:none;"><span class="budget-label" style="font-weight:800;color:#111;">Buffer remaining</span><span class="budget-val green" style="font-size:11px;">$1,525</span></div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-title">Landlord screening</div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span style="font-size:8px;color:#555;">Income ≥ 3× rent ($5,400/mo)</span><span style="font-size:9px;font-weight:800;background:#E8F5EE;color:#1A5C3A;border-radius:5px;padding:2px 7px;">PASS</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span style="font-size:8px;color:#555;">Credit score ≥ 620 (740)</span><span style="font-size:9px;font-weight:800;background:#E8F5EE;color:#1A5C3A;border-radius:5px;padding:2px 7px;">PASS</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A5C3A;">Know before you search</div>
+      <div class="callout-headline">See exactly what rent<br>your income supports.</div>
+      <div class="callout-sub">Three tiers. Real take-home math. State taxes included.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 3 — Programs ══════════════ -->
+<div class="slide" id="slide-3" data-flow="buy">
+  <div class="mockup-wrap">
+    <div class="mockup bg-green">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title">🎯 Available programs</span><span class="screen-hdr-step">Step 6 of 9</span></div></div>
+              <div class="scroll-area">
+                <div style="font-size:8px;color:#555;margin-bottom:4px;">3 programs found near Atlanta, GA</div>
+                <div class="prog-item"><div style="display:flex;justify-content:space-between;"><div class="prog-name">Georgia Dream</div><span class="prog-badge">DPA Grant</span></div><div class="prog-desc">State-backed down payment assistance for first-time buyers</div><div class="prog-amount">$10,000</div></div>
+                <div class="prog-item"><div style="display:flex;justify-content:space-between;"><div class="prog-name">Atlanta Affordable Homeownership</div><span class="prog-badge">Forgivable Loan</span></div><div class="prog-desc">City-funded assistance for income-eligible buyers</div><div class="prog-amount">$20,000</div></div>
+                <div class="prog-item"><div style="display:flex;justify-content:space-between;"><div class="prog-name">Mortgage Credit Certificate</div><span class="prog-badge">Tax Credit</span></div><div class="prog-desc">Annual federal tax credit on mortgage interest paid</div><div class="prog-amount">~$1,200/yr</div></div>
+                <div class="mini-card" style="border:1.5px solid #E8F5EE;"><div style="display:flex;justify-content:space-between;"><span style="font-size:9px;font-weight:800;color:#1A5C3A;">Total assistance found</span><span style="font-size:15px;font-weight:900;color:#1A5C3A;">$30,000+</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A5C3A;">Free money you didn't know about</div>
+      <div class="callout-headline">Down payment help<br>matched to your ZIP.</div>
+      <div class="callout-sub">Grants, forgivable loans, and tax credits — based on your income and location.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 4 — Rent Results ══════════════ -->
+<div class="slide" id="slide-4" data-flow="rent">
+  <div class="mockup-wrap">
+    <div class="mockup bg-blue">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title blue">🏢 Your target rent</span><span class="screen-hdr-step">Step 4 of 6</span></div></div>
+              <div class="scroll-area">
+                <div class="mini-card" style="border:1.5px solid #1A70C8;">
+                  <div style="font-size:8px;font-weight:800;color:#1A70C8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">The 30% rule</div>
+                  <div style="font-size:8px;color:#555;margin-bottom:5px;line-height:1.4;">HUD guideline: spend no more than 30% of gross income on rent.</div>
+                  <div style="background:#E8F0FA;border-radius:7px;padding:6px 8px;"><div style="font-size:8px;color:#1A70C8;font-weight:700;margin-bottom:2px;">Your numbers</div><div style="font-size:9px;color:#444;">Gross: <span style="font-weight:800;color:#111;">$5,000/mo</span> &nbsp;·&nbsp; 30% standard: <span style="font-weight:800;color:#1A70C8;">$1,500/mo</span></div></div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-title">Set your target rent</div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:9px;color:#555;">Target rent</span><span style="font-size:16px;font-weight:900;color:#1A70C8;">$1,400/mo</span></div>
+                  <div style="height:5px;background:#E8F0FA;border-radius:99px;overflow:hidden;"><div style="width:56%;height:100%;background:#1A70C8;border-radius:99px;"></div></div>
+                </div>
+                <div class="mini-card" style="border:1.5px solid #22C55E40;">
+                  <div style="font-size:8px;background:#F0FDF4;border-radius:6px;padding:5px 7px;color:#15803D;font-weight:600;">✓ Your target is at or below the 30% standard. Great choice!</div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-title">Move-in cash needed</div>
+                  <div class="budget-row"><span class="budget-label">First month's rent</span><span class="budget-val blue">$1,400</span></div>
+                  <div class="budget-row"><span class="budget-label">Security deposit (1 mo)</span><span class="budget-val">$1,400</span></div>
+                  <div class="budget-row"><span class="budget-label">Application + admin fees</span><span class="budget-val">$275</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0 2px;border-top:.5px solid #F0F0F0;margin-top:2px;"><span style="font-size:10px;font-weight:800;">Total needed</span><span style="font-size:15px;font-weight:900;color:#1A70C8;">$3,075</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A70C8;">No surprises on signing day</div>
+      <div class="callout-headline">Your target rent.<br>Your move-in total. Clear.</div>
+      <div class="callout-sub">Deposit, fees, and first month — calculated before you tour.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 5 — Nearby Areas ══════════════ -->
+<div class="slide" id="slide-5" data-flow="rent">
+  <div class="mockup-wrap">
+    <div class="mockup bg-blue">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title blue">📍 Nearby areas</span><span class="screen-hdr-step">Step 5 of 6</span></div></div>
+              <div class="scroll-area">
+                <div style="font-size:8px;color:#555;margin-bottom:5px;">Areas within 5 miles · Houston, TX</div>
+                <div class="nearby-area"><div><div class="area-name">Midtown</div><div class="area-sub">Harris County</div></div><div class="area-budget" style="background:#E8F5EE;color:#1A5C3A;">Conservative</div></div>
+                <div class="nearby-area"><div><div class="area-name">EaDo</div><div class="area-sub">Harris County</div></div><div class="area-budget" style="background:#E8F0FA;color:#1A70C8;">Standard</div></div>
+                <div class="nearby-area"><div><div class="area-name">Montrose</div><div class="area-sub">Harris County</div></div><div class="area-budget" style="background:#E8F0FA;color:#1A70C8;">Standard</div></div>
+                <div class="nearby-area"><div><div class="area-name">Upper Kirby</div><div class="area-sub">Harris County</div></div><div class="area-budget" style="background:#FFF8E1;color:#7A4400;">Stretch</div></div>
+                <div class="mini-card" style="border:1.5px solid #E8F0FA;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:9px;font-weight:800;color:#1A70C8;">Show areas within</span><span style="font-size:12px;font-weight:900;color:#1A70C8;">5 mi</span></div>
+                  <div style="height:5px;background:#E8F0FA;border-radius:99px;overflow:hidden;"><div style="width:20%;height:100%;background:#1A70C8;border-radius:99px;"></div></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:3px;"><span style="font-size:7px;color:#AAA;">1 mi</span><span style="font-size:7px;color:#AAA;">25 mi</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A70C8;">Explore smarter</div>
+      <div class="callout-headline">Neighborhoods ranked<br>to your budget.</div>
+      <div class="callout-sub">Adjust the radius. See what's affordable near you.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 6 — Move-in Checklist ══════════════ -->
+<div class="slide" id="slide-6" data-flow="rent">
+  <div class="mockup-wrap">
+    <div class="mockup bg-blue">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title blue">✅ Move-in action plan</span><span class="screen-hdr-step">Step 6 of 6</span></div></div>
+              <div class="scroll-area">
+                <div class="mini-card" style="border:1.5px solid #1A70C8;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:9px;font-weight:800;color:#1A70C8;">Move-in progress</span><span style="font-size:20px;font-weight:900;color:#1A70C8;">42%</span></div>
+                  <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:42%;background:#1A70C8;"></div></div>
+                  <div style="font-size:8px;color:#888;margin-top:3px;">25 of 60 tasks complete</div>
+                </div>
+                <div class="mini-card">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><div style="display:flex;align-items:center;gap:5px;"><span style="font-size:14px;">📋</span><span style="font-size:10px;font-weight:800;">Application & Approval</span></div><span style="font-size:9px;font-weight:700;background:#E8F0FA;color:#1A70C8;border-radius:99px;padding:2px 7px;">8/8</span></div>
+                  <div class="check-item"><div class="check-box" style="background:#1A70C8;"><span style="font-size:8px;color:#fff;font-weight:900;">✓</span></div><span class="check-text check-done">Pull credit report at annualcreditreport.com</span></div>
+                  <div class="check-item"><div class="check-box" style="background:#1A70C8;"><span style="font-size:8px;color:#fff;font-weight:900;">✓</span></div><span class="check-text check-done">Gather last 2 pay stubs and W-2s</span></div>
+                </div>
+                <div class="mini-card">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><div style="display:flex;align-items:center;gap:5px;"><span style="font-size:14px;">📦</span><span style="font-size:10px;font-weight:800;">2–4 Weeks Before Moving</span></div><span style="font-size:9px;font-weight:700;background:#F0F0F0;color:#888;border-radius:99px;padding:2px 7px;">3/10</span></div>
+                  <div class="check-item"><div class="check-box" style="background:#1A70C8;"><span style="font-size:8px;color:#fff;font-weight:900;">✓</span></div><span class="check-text check-done">Book moving truck or company</span></div>
+                  <div class="check-item"><div class="check-box" style="border:2px solid #CCC;"></div><span class="check-text">Set up renter's insurance online</span></div>
+                  <div class="check-item"><div class="check-box" style="border:2px solid #CCC;"></div><span class="check-text">Notify USPS of address change</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A70C8;">60 tasks. Zero forgotten.</div>
+      <div class="callout-headline">From lease signing<br>to fully moved in.</div>
+      <div class="callout-sub">Application, movers, utilities, insurance — your complete move-in roadmap.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 7 — Seller Proceeds ══════════════ -->
+<div class="slide" id="slide-7" data-flow="sell">
+  <div class="mockup-wrap">
+    <div class="mockup bg-amber">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title amber">💰 Net proceeds</span><span class="screen-hdr-step">Step 3 of 5</span></div></div>
+              <div class="scroll-area">
+                <div class="mini-card">
+                  <div class="mini-card-title">Proceeds waterfall</div>
+                  <div class="waterfall-row"><span class="wf-label">Sale price</span><span class="wf-val">$485,000</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Agent commission (5.5%)</span><span class="wf-val red">−$26,675</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Closing costs (seller)</span><span class="wf-val red">−$9,700</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Mortgage payoff</span><span class="wf-val red">−$245,000</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Repairs & staging</span><span class="wf-val red">−$5,000</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:6px 0 2px;border-top:1px solid #F0F0F0;margin-top:2px;"><span style="font-size:10px;font-weight:800;">Net to you</span><span style="font-size:16px;font-weight:900;color:#7A4400;">$198,625</span></div>
+                </div>
+                <div class="mini-card">
+                  <div class="mini-card-title">What's next with your proceeds?</div>
+                  <div style="display:flex;gap:5px;">
+                    <div style="flex:1;border:1.5px solid #FFF3E0;border-radius:8px;padding:7px;text-align:center;background:#FFF9F0;"><div style="font-size:14px;margin-bottom:3px;">🏡</div><div style="font-size:8px;font-weight:800;color:#7A4400;">Buy next</div></div>
+                    <div style="flex:1;border:1.5px solid #E8F0FA;border-radius:8px;padding:7px;text-align:center;"><div style="font-size:14px;margin-bottom:3px;">🏢</div><div style="font-size:8px;font-weight:800;color:#1A70C8;">Rent next</div></div>
+                    <div style="flex:1;border:1.5px solid #F0F0F0;border-radius:8px;padding:7px;text-align:center;"><div style="font-size:14px;margin-bottom:3px;">💵</div><div style="font-size:8px;font-weight:800;color:#555;">Keep cash</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#7A4400;">Know your number</div>
+      <div class="callout-headline">See exactly what you'll<br>walk away with.</div>
+      <div class="callout-sub">Commission, payoff, closing costs — your net proceeds in one clear waterfall.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 8 — Capital Gains ══════════════ -->
+<div class="slide" id="slide-8" data-flow="sell">
+  <div class="mockup-wrap">
+    <div class="mockup bg-amber">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#fff;color:#111;"><span class="status-time">9:41</span><div class="island"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#111" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#111"/></svg></div></div>
+            <div class="screen-content">
+              <div class="screen-header"><div class="screen-hdr-row"><span class="screen-hdr-title amber">📊 Capital gains</span><span class="screen-hdr-step">Step 3 of 5</span></div></div>
+              <div class="scroll-area">
+                <div class="mini-card">
+                  <div class="mini-card-title">Your gain</div>
+                  <div class="waterfall-row"><span class="wf-label">Sale price</span><span class="wf-val">$485,000</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Original purchase price</span><span class="wf-val red">−$280,000</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Improvements</span><span class="wf-val red">−$15,000</span></div>
+                  <div class="waterfall-row"><span class="wf-label">Selling costs</span><span class="wf-val red">−$41,375</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0 2px;border-top:.5px solid #F0F0F0;margin-top:2px;"><span style="font-size:9px;font-weight:800;">Taxable gain</span><span style="font-size:14px;font-weight:900;color:#7A4400;">$148,625</span></div>
+                </div>
+                <div class="cg-rate-box" style="background:#FFF3E0;">
+                  <div class="cg-rate-label amber">Your capital gains rate</div>
+                  <div class="cg-rate-val amber">15%</div>
+                  <div style="font-size:8px;color:#888;margin-top:3px;">Long-term · Owned 6 years · Filing single · $86K income</div>
+                </div>
+                <div class="mini-card" style="border:1.5px solid #FFF3E0;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:9px;font-weight:800;color:#7A4400;">Primary home exclusion</div><div style="font-size:8px;color:#888;margin-top:2px;">Owned & lived in 2+ of last 5 years</div></div><span style="font-size:10px;font-weight:800;background:#FFF3E0;color:#7A4400;border-radius:5px;padding:3px 8px;">−$250,000</span></div>
+                  <div style="margin-top:6px;background:#E8F5EE;border-radius:6px;padding:5px 7px;font-size:8px;color:#15803D;font-weight:700;">✓ Exclusion covers full gain — $0 federal tax owed</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#7A4400;">No tax surprises</div>
+      <div class="callout-headline">Capital gains calculated<br>before you list.</div>
+      <div class="callout-sub">Rate, exclusion, and tax owed — based on your income, filing status, and years owned.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 9 — Dark Mode ══════════════ -->
+<div class="slide" id="slide-9" data-flow="all">
+  <div class="mockup-wrap">
+    <div class="mockup bg-dark">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#111;">
+            <div class="status-bar" style="background:#111;color:#fff;"><span class="status-time">9:41</span><div class="island" style="background:#000;"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#fff" stroke-opacity=".35" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#fff"/></svg></div></div>
+            <div class="screen-content">
+              <div style="background:#1C1C1E;padding:10px 14px 6px;border-bottom:1px solid #2C2C2E;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;font-weight:900;color:#4ADE80;">🏡 What you can afford</span><span style="font-size:9px;color:#666;font-weight:600;">Step 4 of 9</span></div></div>
+              <div style="background:#0A0A0A;flex:1;padding:6px 8px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+                <div style="background:#1C1C1E;border-radius:10px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:800;color:#444;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Rent tiers</div>
+                  <div style="background:#0D3D24;border-radius:8px;padding:6px 8px;margin-bottom:4px;"><div style="font-size:8px;font-weight:800;color:#4ADE80;text-transform:uppercase;">Conservative · 25%</div><div style="font-size:18px;font-weight:900;color:#4ADE80;">$1,500<span style="font-size:10px;">/mo</span></div></div>
+                  <div style="background:#0D2644;border-radius:8px;padding:6px 8px;margin-bottom:4px;"><div style="font-size:8px;font-weight:800;color:#60A5FA;text-transform:uppercase;">Standard · 30%</div><div style="font-size:18px;font-weight:900;color:#60A5FA;">$1,800<span style="font-size:10px;">/mo</span></div></div>
+                  <div style="background:#3D2200;border-radius:8px;padding:6px 8px;"><div style="font-size:8px;font-weight:800;color:#FBBF24;text-transform:uppercase;">Stretch · 35%</div><div style="font-size:18px;font-weight:900;color:#FBBF24;">$2,100<span style="font-size:10px;">/mo</span></div></div>
+                </div>
+                <div style="background:#1C1C1E;border-radius:10px;padding:8px 10px;">
+                  <div style="font-size:9px;font-weight:800;color:#444;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Monthly breakdown</div>
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:.5px solid #2C2C2E;"><span style="font-size:8px;color:#666;">Take-home pay</span><span style="font-size:8px;font-weight:700;color:#4ADE80;">$4,760</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:.5px solid #2C2C2E;"><span style="font-size:8px;color:#666;">Rent (standard)</span><span style="font-size:8px;font-weight:700;color:#60A5FA;">−$1,800</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:.5px solid #2C2C2E;"><span style="font-size:8px;color:#666;">All other expenses</span><span style="font-size:8px;font-weight:700;color:#F0F0F0;">−$1,635</span></div>
+                  <div style="display:flex;justify-content:space-between;padding:5px 0 2px;"><span style="font-size:9px;font-weight:800;color:#F0F0F0;">Buffer</span><span style="font-size:13px;font-weight:900;color:#4ADE80;">$1,325</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#888;">Built for night owls too</div>
+      <div class="callout-headline">Full dark mode.<br>Every screen.</div>
+      <div class="callout-sub">Automatic system theme — looks great day or night.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SLIDE 10 — Auth ══════════════ -->
+<div class="slide" id="slide-10" data-flow="all">
+  <div class="mockup-wrap">
+    <div class="mockup bg-green">
+      <div class="mockup-inner">
+        <div class="phone">
+          <div class="phone-bg" style="background:#fff;">
+            <div class="status-bar" style="background:#1A5C3A;color:#fff;"><span class="status-time">9:41</span><div class="island" style="background:#0D3D24;"></div><div class="status-icons"><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#fff" stroke-opacity=".5" fill="none"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#fff"/></svg></div></div>
+            <div class="screen-content">
+              <div style="background:#1A5C3A;padding:24px 20px 28px;text-align:center;"><div style="font-size:40px;margin-bottom:8px;">🍞</div><div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.3px;">Bread Crumbs</div><div style="font-size:10px;color:#A7D9BD;margin-top:4px;">Your real estate financial planner</div></div>
+              <div style="background:#F5F5F0;flex:1;padding:16px 14px;">
+                <div style="font-size:12px;font-weight:800;color:#111;margin-bottom:12px;text-align:center;">Sign in to save your progress</div>
+                <div style="background:#fff;border:1.5px solid #DDD;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:10px;color:#AAA;">Email address</div>
+                <div style="background:#fff;border:1.5px solid #DDD;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:10px;color:#AAA;">Password</div>
+                <div style="background:#1A5C3A;border-radius:10px;padding:10px;text-align:center;margin-bottom:10px;"><span style="font-size:11px;font-weight:800;color:#fff;">Sign in →</span></div>
+                <div style="text-align:center;font-size:9px;color:#AAA;margin-bottom:8px;">or continue with</div>
+                <div style="background:#fff;border:1.5px solid #DDD;border-radius:10px;padding:9px;text-align:center;"><span style="font-size:10px;font-weight:700;color:#333;">G &nbsp; Continue with Google</span></div>
+                <div style="text-align:center;margin-top:10px;font-size:9px;color:#AAA;">Progress saves automatically after each step</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-tag" style="color:#1A5C3A;">Save your plan</div>
+      <div class="callout-headline">Sign in once.<br>Your plan follows you.</div>
+      <div class="callout-sub">Progress saves automatically after every step. Pick up where you left off.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end canvas -->
+
+<div class="dots" id="dots"></div>
+
+<div class="export-hint">
+  <strong>How to use:</strong> Open this file in Chrome → navigate to each slide → right-click the mockup → "Inspect" → screenshot the element at 2× scale.<br>
+  Or take your Expo Go screenshots and composite them into the phone shell in Figma / Canva using this as your reference.<br>
+  <strong>Required export sizes:</strong> 1320 × 2868 px (6.9" iPhone 16 Pro Max) &nbsp;·&nbsp; 1284 × 2778 px (6.5" iPhone 15 Plus)
+</div>
+
+<script>
+  let current = 1;
+  const total = 10;
+
+  function buildDots() {
+    const d = document.getElementById('dots');
+    d.innerHTML = '';
+    for (let i = 1; i <= total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.onclick = () => goTo(i);
+      d.appendChild(dot);
+    }
+  }
+
+  function goTo(n) {
+    document.getElementById('slide-' + current).classList.remove('active');
+    current = n;
+    document.getElementById('slide-' + current).classList.add('active');
+    document.getElementById('counter').textContent = current + ' / ' + total;
+    buildDots();
+  }
+
+  function nextSlide() { goTo(current < total ? current + 1 : 1); }
+  function prevSlide() { goTo(current > 1 ? current - 1 : total); }
+
+  function setFlow(flow, e) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    let first = null;
+    for (let i = 1; i <= total; i++) {
+      const s = document.getElementById('slide-' + i);
+      const show = flow === 'all' || s.dataset.flow === flow || s.dataset.flow === 'all';
+      s.style.display = show ? '' : 'none';
+      if (show && !first) first = i;
+    }
+    if (first) goTo(first);
+  }
+
+  buildDots();
+</script>
+</body>
+</html>

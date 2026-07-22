@@ -1,18 +1,24 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Linking } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Linking } from "react-native";
+import { useState } from "react";
 import Slider from "@react-native-community/slider";
-import { C } from "../lib/colors";
-import { calcTax, fmt, fmtK } from "../lib/math";
-import { Card, SecTitle, Alert, BtnPri } from "../components/UI";
+import { useTheme } from "../lib/theme";
+import { fmt, fmtK } from "../lib/math";
+import { federalTax, FILING_LABELS } from "../lib/tax";
+import { Card, SecTitle, Alert } from "../components/UI";
+import GlossaryBar from "../components/GlossaryBar";
 
 function SliderRow({ label, min, max, step, value, onChange, display, note, color }) {
+  const C = useTheme();
   const trackColor = color || C.green;
+  const [mountKey] = useState(() => `${min}_${max}_${value}`);
   return (
-    <View style={s.sliderRow}>
-      <View style={s.sliderHeader}>
-        <Text style={s.sliderLabel}>{label}</Text>
-        <Text style={[s.sliderDisplay, { color: trackColor }]}>{display}</Text>
+    <View style={{ marginBottom: 16 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+        <Text style={{ fontSize: 12, fontWeight: "700", color: C.charcoal, flex: 1 }}>{label}</Text>
+        <Text style={{ fontSize: 18, fontWeight: "900", color: trackColor }}>{display}</Text>
       </View>
       <Slider
+        key={mountKey}
         style={{ width: "100%", height: 36 }}
         minimumValue={min}
         maximumValue={max}
@@ -23,7 +29,7 @@ function SliderRow({ label, min, max, step, value, onChange, display, note, colo
         maximumTrackTintColor={C.gray300}
         thumbTintColor={trackColor}
       />
-      {note ? <Text style={s.sliderNote}>{note}</Text> : null}
+      {note ? <Text style={{ fontSize: 11, color: C.gray500, marginTop: -4 }}>{note}</Text> : null}
     </View>
   );
 }
@@ -38,10 +44,13 @@ const PROFESSIONS = [
 ];
 
 export default function IncomeScreen({ data, setData, onNext, onBack }) {
+  const C = useTheme();
   const d = data;
   const grossMo   = Math.round((d.income || 0) / 12);
   const alimonyMo = Math.round((d.alimony || 0) / 12);
-  const taxSav    = calcTax(d.income || 0, 0) - calcTax(d.income || 0, (d.k401 || 0) + (d.hsa || 0));
+  const status    = d.filingStatus || "single";
+  const pretaxAmt = (d.k401 || 0) + (d.hsa || 0) + (d.ira || 0);
+  const taxSav    = Math.round((federalTax({ gross: d.income || 0, status }) - federalTax({ gross: d.income || 0, pretax: pretaxAmt, status })) / 12);
   const scoreColor = (d.score || 700) >= 740 ? C.green : (d.score || 700) >= 700 ? C.greenMid : (d.score || 700) >= 640 ? C.amber : C.red;
   const scoreNote  = (d.score || 700) >= 740 ? "Excellent — best conventional rates"
                    : (d.score || 700) >= 700 ? "Good — conventional eligible"
@@ -49,9 +58,8 @@ export default function IncomeScreen({ data, setData, onNext, onBack }) {
                    : "Below 640 — FHA or credit repair first";
 
   return (
-    <ScrollView style={s.scroll} contentContainerStyle={s.content}>
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 16, paddingTop: 8, paddingBottom: 40 }}>
 
-      {/* Income */}
       <Card>
         <SecTitle>Income</SecTitle>
         <SliderRow
@@ -72,7 +80,37 @@ export default function IncomeScreen({ data, setData, onNext, onBack }) {
         />
       </Card>
 
-      {/* Retirement */}
+      <Card>
+        <SecTitle>Filing status</SecTitle>
+        <Text style={{ fontSize: 12, color: C.gray700, marginBottom: 12, lineHeight: 18 }}>How you file your federal taxes — affects your tax brackets and standard deduction.</Text>
+        <View style={{ gap: 8 }}>
+          {[
+            { k: "single", emoji: "👤", sub: "Not married" },
+            { k: "mfj",    emoji: "👫", sub: "Married, filing together" },
+            { k: "mfs",    emoji: "↔️",  sub: "Married, filing separately" },
+            { k: "hoh",    emoji: "🏠", sub: "Single with dependents" },
+          ].map(opt => (
+            <TouchableOpacity
+              key={opt.k}
+              onPress={() => setData({ ...d, filingStatus: opt.k })}
+              style={{
+                flexDirection: "row", alignItems: "center", gap: 10,
+                borderWidth: 2, borderRadius: 10, padding: 10,
+                borderColor: status === opt.k ? C.green : C.gray300,
+                backgroundColor: status === opt.k ? C.greenLight : C.card,
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontSize: 20 }}>{opt.emoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12, fontWeight: "800", color: status === opt.k ? C.green : C.charcoal }}>{FILING_LABELS[opt.k]}</Text>
+                <Text style={{ fontSize: 10, color: C.gray500 }}>{opt.sub}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Card>
+
       <Card>
         <SecTitle>Retirement contributions</SecTitle>
         <SliderRow
@@ -94,6 +132,15 @@ export default function IncomeScreen({ data, setData, onNext, onBack }) {
           color={C.amber}
         />
         <SliderRow
+          label="Traditional IRA per year"
+          min={0} max={7000} step={250}
+          value={d.ira || 0}
+          onChange={v => setData({ ...d, ira: v })}
+          display={fmtK(d.ira || 0) + "/yr"}
+          note={`Pre-tax · ${Math.round((d.ira || 0) / 7000 * 100)}% of $7,000 limit`}
+          color={C.amber}
+        />
+        <SliderRow
           label="HSA per year"
           min={0} max={4300} step={100}
           value={d.hsa || 0}
@@ -107,22 +154,87 @@ export default function IncomeScreen({ data, setData, onNext, onBack }) {
         )}
       </Card>
 
-      {/* Profession */}
+      <Card>
+        <SecTitle>Liquid savings</SecTitle>
+        <SliderRow
+          label="Current savings & cash on hand"
+          min={0} max={200000} step={5000}
+          value={d.savings || 0}
+          onChange={v => setData({ ...d, savings: v })}
+          display={fmtK(d.savings || 0)}
+          note={d.isFirstTime === false ? "Checking, savings, and cash on hand — in addition to your home equity" : "Checking, savings, and money market accounts — used for down payment, closing costs, and asset limit checks on assistance programs"}
+          color={C.green}
+        />
+        {d.isFirstTime === false && (
+          <SliderRow
+            label="Current monthly mortgage payment"
+            min={0} max={5000} step={50}
+            value={d.currentMortgagePayment || 0}
+            onChange={v => setData({ ...d, currentMortgagePayment: v })}
+            display={"$" + (d.currentMortgagePayment || 0).toLocaleString() + "/mo"}
+            note="This goes away when you sell — won't count against your new DTI"
+            color={C.green}
+          />
+        )}
+      </Card>
+
+      <Card>
+        <SecTitle>Investment &amp; retirement balances</SecTitle>
+        <Text style={{ fontSize: 12, color: C.gray700, marginBottom: 14, lineHeight: 18 }}>
+          Enter what you currently own in these accounts today.
+        </Text>
+        <SliderRow
+          label="Personal investment accounts (brokerage, stocks, crypto)"
+          min={0} max={500000} step={5000}
+          value={d.investAcct || 0}
+          onChange={v => setData({ ...d, investAcct: v })}
+          display={fmtK(d.investAcct || 0)}
+          note="Taxable brokerage — not immediately earmarked for down payment"
+          color={C.amber}
+        />
+        <SliderRow
+          label="Roth IRA / Traditional IRA balance"
+          min={0} max={200000} step={5000}
+          value={d.rothBalance || 0}
+          onChange={v => setData({ ...d, rothBalance: v })}
+          display={fmtK(d.rothBalance || 0)}
+          note="Current account balance, not annual contributions"
+          color={C.amber}
+        />
+        <SliderRow
+          label="401(k) / 403(b) balance"
+          min={0} max={1000000} step={10000}
+          value={d.retirementBalance || 0}
+          onChange={v => setData({ ...d, retirementBalance: v })}
+          display={fmtK(d.retirementBalance || 0)}
+          note="Current account balance, not annual contributions"
+          color={C.amber}
+        />
+      </Card>
+
       <Card>
         <SecTitle>Your profession</SecTitle>
-        <Text style={s.helpText}>Many lenders and programs offer special benefits for certain professions. Select yours to unlock every program you qualify for.</Text>
-        <View style={s.profGrid}>
+        <Text style={{ fontSize: 12, color: C.gray700, marginBottom: 12, lineHeight: 18 }}>
+          Many lenders and programs offer special benefits for certain professions. Select yours to unlock every program you qualify for.
+        </Text>
+        <View style={{ gap: 8 }}>
           {PROFESSIONS.map(opt => (
             <TouchableOpacity
               key={opt.v}
               onPress={() => setData({ ...d, profession: opt.v })}
-              style={[s.profCard, d.profession === opt.v && s.profCardSelected]}
+              style={{
+                flexDirection: "row", alignItems: "center", gap: 10,
+                borderWidth: 2,
+                borderColor: d.profession === opt.v ? C.green : C.gray300,
+                borderRadius: 10, padding: 10,
+                backgroundColor: d.profession === opt.v ? C.greenLight : C.card,
+              }}
               activeOpacity={0.7}
             >
-              <Text style={s.profEmoji}>{opt.emoji}</Text>
+              <Text style={{ fontSize: 20 }}>{opt.emoji}</Text>
               <View style={{ flex: 1 }}>
-                <Text style={[s.profLabel, d.profession === opt.v && s.profLabelSelected]}>{opt.label}</Text>
-                <Text style={s.profSub}>{opt.sub}</Text>
+                <Text style={{ fontSize: 12, fontWeight: "800", lineHeight: 16, color: d.profession === opt.v ? C.green : C.charcoal }}>{opt.label}</Text>
+                <Text style={{ fontSize: 10, color: C.gray500 }}>{opt.sub}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -132,66 +244,37 @@ export default function IncomeScreen({ data, setData, onNext, onBack }) {
         )}
       </Card>
 
-      {/* Credit score */}
       <Card>
         <SecTitle>Credit profile</SecTitle>
         <SliderRow
           label="Credit score"
-          min={500} max={850} step={10}
+          min={0} max={850} step={10}
           value={d.score || 700}
           onChange={v => setData({ ...d, score: v })}
           display={String(d.score || 700)}
           note={scoreNote}
           color={scoreColor}
         />
-        <Text style={s.creditNote}>
+        <Text style={{ fontSize: 11, color: C.gray500, lineHeight: 17, marginTop: 4 }}>
           Lenders evaluate your application using the middle score from the 3 major bureaus.{" "}
-          <Text style={s.creditLink} onPress={() => Linking.openURL("https://www.annualcreditreport.com")}>
+          <Text style={{ color: C.blue, fontWeight: "600" }} onPress={() => Linking.openURL("https://www.annualcreditreport.com")}>
             Check your free report at annualcreditreport.com
           </Text>
           .
         </Text>
       </Card>
 
-      {/* Nav buttons */}
-      <View style={s.navRow}>
-        <TouchableOpacity onPress={onBack} style={s.backBtn} activeOpacity={0.8}>
-          <Text style={s.backBtnText}>← Back</Text>
+      <View style={{ flexDirection: "row", gap: 8, marginTop: 4, marginBottom: 24 }}>
+        <TouchableOpacity onPress={onBack} style={{ flex: 1, borderRadius: 14, paddingVertical: 16, alignItems: "center", backgroundColor: C.gray100, borderWidth: 1, borderColor: C.gray300 }} activeOpacity={0.8}>
+          <Text style={{ fontSize: 15, fontWeight: "700", color: C.gray700 }}>← Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onNext} style={s.nextBtn} activeOpacity={0.8}>
-          <Text style={s.nextBtnText}>Continue →</Text>
+        <TouchableOpacity onPress={onNext} style={{ flex: 2, borderRadius: 14, paddingVertical: 16, alignItems: "center", backgroundColor: C.green }} activeOpacity={0.8}>
+          <Text style={{ fontSize: 15, fontWeight: "800", color: C.white }}>Continue →</Text>
         </TouchableOpacity>
       </View>
+
+      <GlossaryBar keys={["FHA", "FICO", "AMI", "MCC", "DPA"]} />
 
     </ScrollView>
   );
 }
-
-const s = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: "#F5F5F0" },
-  content: { padding: 16, paddingTop: 8, paddingBottom: 40 },
-  helpText: { fontSize: 12, color: C.gray700, marginBottom: 12, lineHeight: 18 },
-  sliderRow: { marginBottom: 16 },
-  sliderHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 2 },
-  sliderLabel: { fontSize: 12, fontWeight: "700", color: C.charcoal, flex: 1 },
-  sliderDisplay: { fontSize: 18, fontWeight: "900" },
-  sliderNote: { fontSize: 11, color: C.gray500, marginTop: -4 },
-  profGrid: { gap: 8 },
-  profCard: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderWidth: 2, borderColor: C.gray300, borderRadius: 10,
-    padding: 10, backgroundColor: C.white,
-  },
-  profCardSelected: { borderColor: C.green, backgroundColor: C.greenLight },
-  profEmoji: { fontSize: 20 },
-  profLabel: { fontSize: 12, fontWeight: "800", color: C.charcoal, lineHeight: 16 },
-  profLabelSelected: { color: C.green },
-  profSub: { fontSize: 10, color: C.gray500 },
-  creditNote: { fontSize: 11, color: C.gray500, lineHeight: 17, marginTop: 4 },
-  creditLink: { color: C.blue, fontWeight: "600" },
-  navRow: { flexDirection: "row", gap: 8, marginTop: 4, marginBottom: 24 },
-  backBtn: { flex: 1, borderRadius: 14, paddingVertical: 16, alignItems: "center", backgroundColor: C.gray100, borderWidth: 1, borderColor: C.gray300 },
-  backBtnText: { fontSize: 15, fontWeight: "700", color: C.gray700 },
-  nextBtn: { flex: 2, borderRadius: 14, paddingVertical: 16, alignItems: "center", backgroundColor: C.green },
-  nextBtnText: { fontSize: 15, fontWeight: "800", color: C.white },
-});
