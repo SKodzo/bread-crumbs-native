@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Linking,
+  ActivityIndicator, KeyboardAvoidingView, Platform, Linking, InteractionManager,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useTheme } from "../lib/theme";
@@ -128,6 +128,7 @@ export default function LocationScreen({ data, setData, onNext, programs = [] })
     const c = z.trim();
     if (c.length !== 5 || !/^\d{5}$/.test(c)) { setStatus("invalid"); return; }
     setLoading(true);
+    await new Promise(resolve => InteractionManager.runAfterInteractions(resolve));
     if (ZIP_DB[c]) {
       const [st, ci, co] = ZIP_DB[c];
       setLocInfo({ zip: c, state: st, city: ci, county: co });

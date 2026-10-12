@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, InteractionManager } from "react-native";
 import { useTheme } from "../../lib/theme";
 import { fmt, fmtK } from "../../lib/math";
 import { FILING_LABELS } from "../../lib/tax";
@@ -17,16 +17,18 @@ export default function RentProfileScreen({ data, setData, onNext }) {
   const crimeColor = crime?.safety === "low" ? C.green : crime?.safety === "medium" ? C.amber : crime ? C.red : null;
 
   const onZipChange = (zip) => {
-    const entry = ZIP_DB[zip];
-    if (entry) {
-      const rawCity = entry[1];
-      const city = (rawCity.startsWith("Zcta") || rawCity.startsWith("ZCTA") || /^\d/.test(rawCity))
-        ? (ZCTA_NAMES[zip] || entry[2] + " County")
-        : rawCity;
-      setData({ ...d, zip, locationInfo: { state: entry[0], city, county: entry[2], zip } });
-    } else {
-      setData({ ...d, zip, locationInfo: null });
-    }
+    InteractionManager.runAfterInteractions(() => {
+      const entry = ZIP_DB[zip];
+      if (entry) {
+        const rawCity = entry[1];
+        const city = (rawCity.startsWith("Zcta") || rawCity.startsWith("ZCTA") || /^\d/.test(rawCity))
+          ? (ZCTA_NAMES[zip] || entry[2] + " County")
+          : rawCity;
+        setData({ ...d, zip, locationInfo: { state: entry[0], city, county: entry[2], zip } });
+      } else {
+        setData({ ...d, zip, locationInfo: null });
+      }
+    });
   };
 
   const scoreColor = (d.score || 700) >= 720 ? C.green : (d.score || 700) >= 640 ? C.amber : C.red;

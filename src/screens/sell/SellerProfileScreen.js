@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, InteractionManager } from "react-native";
 import { useTheme } from "../../lib/theme";
 import { fmt, fmtK } from "../../lib/math";
 import { FILING_LABELS } from "../../lib/tax";
@@ -29,12 +29,14 @@ export default function SellerProfileScreen({ data, setData, onNext }) {
   const propType = d.propertyType || "primary";
 
   const onZipChange = (zip) => {
-    const entry = ZIP_DB[zip];
-    if (entry) {
-      setData({ ...d, zip, locationInfo: { state: entry[0], city: entry[1], county: entry[2], zip } });
-    } else {
-      setData({ ...d, zip, locationInfo: null });
-    }
+    InteractionManager.runAfterInteractions(() => {
+      const entry = ZIP_DB[zip];
+      if (entry) {
+        setData({ ...d, zip, locationInfo: { state: entry[0], city: entry[1], county: entry[2], zip } });
+      } else {
+        setData({ ...d, zip, locationInfo: null });
+      }
+    });
   };
 
   const medianPrice = loc.state ? (MEDIAN_BY_STATE[loc.state] || 350000) : null;
